@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AI Systems vs Tool Chaos | Bits &amp; Brains AI</title>
+<meta name="description" content="Too many tools and workflows create operational chaos. Build AI-native systems that scale — Bits &amp; Brains AI Infrastructure Company."/>
+<meta property="og:title" content="AI Systems vs Tool Chaos | Bits &amp; Brains AI"/>
+<meta property="og:description" content="Too many tools. Too many workflows. No system. Bits &amp; Brains AI builds AI-native infrastructure that replaces chaos with clarity."/>
+<meta property="og:type" content="website"/>
+<meta property="og:image" content="https://bitsandbrainsai.com/og-image.jpg"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="AI Systems vs Tool Chaos | Bits &amp; Brains AI"/>
+<meta name="twitter:description" content="Too many tools. Too many workflows. No system."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,600&family=JetBrains+Mono:wght@300;400;500&family=Plus+Jakarta+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Bits & Brains AI",
+  "description": "AI Infrastructure Company building AI-native systems",
+  "url": "https://bitsandbrainsai.com",
+  "serviceType": "AI Infrastructure"
+}
+</script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#080706;
+  --bg2:#0e0c0a;
+  --err:#FF3B30;
+  --acc:#FF9500;
+  --gold:#D4A843;
+  --txt:#F5EFE6;
+  --txt2:rgba(245,239,230,0.55);
+  --glitch-r:#FF3B30;
+  --glitch-b:#00CFFF;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);cursor:none}
+#root{position:fixed;inset:0;background:var(--bg)}
+canvas#bg{position:fixed;inset:0;z-index:0}
+canvas#network{position:fixed;inset:0;z-index:1;pointer-events:none}
+canvas#grain{position:fixed;inset:0;z-index:10;pointer-events:none;opacity:.28;mix-blend-mode:screen}
+#glitch-canvas{position:fixed;inset:0;z-index:9;pointer-events:none;opacity:0}
+#panels-layer{position:fixed;inset:0;z-index:3;perspective:900px;transform-style:preserve-3d}
+#text-layer{position:fixed;inset:0;z-index:6;display:flex;align-items:center;justify-content:center;pointer-events:none}
+#bottom-layer{position:fixed;bottom:0;left:0;right:0;z-index:7;padding:2.8rem 3.2rem;pointer-events:none}
+#cursor{position:fixed;width:8px;height:8px;border-radius:50%;background:var(--acc);z-index:100;pointer-events:none;mix-blend-mode:exclusion;transform:translate(-50%,-50%);transition:transform .08s ease}
+#cursor-ring{position:fixed;width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,149,0,.4);z-index:99;pointer-events:none;transform:translate(-50%,-50%);transition:transform .18s ease,width .2s ease,height .2s ease}
+
+/* PANELS */
+.panel{
+  position:absolute;
+  background:rgba(14,12,10,0.72);
+  border:1px solid rgba(255,149,0,0.13);
+  border-radius:8px;
+  backdrop-filter:blur(14px) saturate(140%);
+  -webkit-backdrop-filter:blur(14px) saturate(140%);
+  padding:0;
+  overflow:hidden;
+  transform-style:preserve-3d;
+  will-change:transform,opacity;
+  opacity:0;
+  box-shadow:0 0 32px rgba(255,59,48,0.04), inset 0 0 0 .5px rgba(255,255,255,0.04);
+  transition:box-shadow .4s ease;
+}
+.panel-bar{
+  display:flex;align-items:center;gap:6px;
+  padding:9px 14px;
+  background:rgba(255,255,255,0.03);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.panel-dot{width:9px;height:9px;border-radius:50%}
+.panel-title{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;font-weight:400;letter-spacing:.12em;
+  color:rgba(245,239,230,0.45);margin-left:4px;text-transform:uppercase
+}
+.panel-body{padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.7;color:rgba(245,239,230,0.6)}
+.err-line{color:var(--err);display:flex;align-items:center;gap:6px}
+.warn-line{color:var(--acc);display:flex;align-items:center;gap:6px}
+.ok-line{color:#3EE08A;display:flex;align-items:center;gap:6px}
+.grey-line{color:rgba(245,239,230,0.3)}
+.err-icon::before{content:"✕ "}
+.warn-icon::before{content:"⚠ "}
+.ok-icon::before{content:"✓ "}
+
+/* Floating labels */
+.float-label{
+  position:absolute;
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;font-weight:500;letter-spacing:.18em;
+  color:var(--err);
+  opacity:0;
+  padding:4px 10px;
+  border:1px solid rgba(255,59,48,0.35);
+  border-radius:3px;
+  background:rgba(255,59,48,0.07);
+  text-transform:uppercase;
+  will-change:transform,opacity;
+  white-space:nowrap;
+}
+
+/* TEXT LAYER */
+#hero-text{
+  text-align:center;
+  max-width:680px;
+  padding:0 24px;
+  opacity:0;
+  transform:translateY(20px);
+  will-change:transform,opacity;
+}
+.ht-small{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:12px;font-weight:300;letter-spacing:.35em;
+  color:rgba(245,239,230,0.35);text-transform:uppercase;
+  display:block;margin-bottom:2.4rem;opacity:0;
+}
+.ht-line{
+  display:block;
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(52px,7vw,88px);
+  font-weight:300;letter-spacing:-.02em;line-height:1.05;
+  color:var(--txt);opacity:0;will-change:transform,opacity;
+  transform:translateY(30px);
+}
+.ht-line.accent{
+  font-weight:600;font-style:italic;
+  color:var(--acc);
+  text-shadow:0 0 60px rgba(255,149,0,.35);
+}
+.ht-line.strong{
+  font-weight:600;letter-spacing:-.03em;
+  color:#fff;
+  text-shadow:0 0 80px rgba(255,255,255,.2);
+}
+.ht-sep{display:block;height:2.8rem}
+
+/* BOTTOM */
+#bottom-info{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  opacity:0;transform:translateY(12px);will-change:transform,opacity;
+}
+#chaos-tags{max-width:360px}
+.chaos-tag-title{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:.22em;color:rgba(245,239,230,.3);
+  text-transform:uppercase;margin-bottom:1rem;
+}
+.chaos-item{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:16px;font-weight:300;color:rgba(245,239,230,.7);
+  line-height:1.6;opacity:0;transform:translateX(-10px);will-change:transform,opacity;
+}
+.chaos-item.em{color:var(--txt);font-weight:400}
+.chaos-warn{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;letter-spacing:.12em;color:rgba(255,59,48,0.65);
+  margin-top:1.2rem;opacity:0;will-change:opacity;
+}
+#brand{text-align:right;opacity:0;will-change:opacity}
+.brand-name{
+  font-family:'Cormorant Garamond',serif;
+  font-size:22px;font-weight:600;letter-spacing:.06em;
+  color:var(--txt);display:block;
+}
+.brand-sub{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:.28em;color:var(--acc);
+  text-transform:uppercase;display:block;margin-top:4px;
+}
+
+/* GLOW BLOOM */
+#bloom{
+  position:fixed;inset:0;z-index:2;pointer-events:none;
+  background:radial-gradient(ellipse 60% 45% at 50% 50%,rgba(255,149,0,0.05) 0%,transparent 70%);
+  opacity:0;will-change:opacity;
+}
+
+/* Reduced motion */
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div id="root" role="main" aria-label="Bits and Brains AI — Operational Chaos Visualization">
+  <canvas id="bg" aria-hidden="true"></canvas>
+  <canvas id="network" aria-hidden="true"></canvas>
+  <div id="bloom" aria-hidden="true"></div>
+  <div id="panels-layer" aria-hidden="true"></div>
+  <canvas id="glitch-canvas" aria-hidden="true"></canvas>
+  <canvas id="grain" aria-hidden="true"></canvas>
+
+  <div id="text-layer" aria-label="Main message: Too many tools. Too many workflows. No system.">
+    <div id="hero-text">
+      <span class="ht-small">Operational Reality</span>
+      <span class="ht-line" id="tl1">Too many</span>
+      <span class="ht-line accent" id="tl2">tools.</span>
+      <span class="ht-sep"></span>
+      <span class="ht-line" id="tl3">Too many</span>
+      <span class="ht-line accent" id="tl4">workflows.</span>
+      <span class="ht-sep"></span>
+      <span class="ht-line" id="tl5">No</span>
+      <span class="ht-line strong" id="tl6">system.</span>
+    </div>
+  </div>
+
+  <div id="bottom-layer">
+    <div id="bottom-info">
+      <div id="chaos-tags">
+        <div class="chaos-tag-title">System Diagnosis</div>
+        <div class="chaos-item em" id="ci1">Disconnected.</div>
+        <div class="chaos-item em" id="ci2">Duplicated.</div>
+        <div class="chaos-item em" id="ci3">Unscalable.</div>
+        <div class="chaos-warn" id="ci-warn">⚠&nbsp;&nbsp;Operational chaos is slowing you down.</div>
+      </div>
+      <div id="brand">
+        <span class="brand-name">BITS &amp; BRAINS AI</span>
+        <span class="brand-sub">AI Infrastructure Company</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="cursor" aria-hidden="true"></div>
+<div id="cursor-ring" aria-hidden="true"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ── GLOBALS ────────────────────────────────────────────── */
+const W=()=>window.innerWidth, H=()=>window.innerHeight;
+let mx=W()/2, my=H()/2, pmx=W()/2, pmy=H()/2;
+let t0=null, raf=null, now=0;
+const prefersReducedMotion=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+/* ── CURSOR ─────────────────────────────────────────────── */
+const cur=document.getElementById('cursor');
+const curR=document.getElementById('cursor-ring');
+let curX=W()/2, curY=H()/2, rX=W()/2, rY=H()/2;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX; my=e.clientY;
+  cur.style.left=mx+'px'; cur.style.top=my+'px';
+});
+function animateCursor(){
+  rX+=(mx-rX)*.12; rY+=(my-rY)*.12;
+  curR.style.left=rX+'px'; curR.style.top=rY+'px';
+  requestAnimationFrame(animateCursor);
+}
+animateCursor();
+
+/* ── CANVAS SETUP ───────────────────────────────────────── */
+const bgC=document.getElementById('bg');
+const bgX=bgC.getContext('2d');
+const netC=document.getElementById('network');
+const netX=netC.getContext('2d');
+const glitchC=document.getElementById('glitch-canvas');
+const glitchX=glitchC.getContext('2d');
+const grainC=document.getElementById('grain');
+const grainX=grainC.getContext('2d');
+
+/* ── GRID ───────────────────────────────────────────────── */
+let gridLines=[];
+function buildGrid(){
+  gridLines=[];
+  const gx=Math.ceil(W()/60), gy=Math.ceil(H()/60);
+  for(let i=0;i<=gx;i++) gridLines.push({x:i*60,vertical:true});
+  for(let j=0;j<=gy;j++) gridLines.push({y:j*60,vertical:false});
+}
+function drawGrid(alpha){
+  bgX.save();
+  bgX.strokeStyle=`rgba(255,149,0,${alpha*0.07})`;
+  bgX.lineWidth=.5;
+  gridLines.forEach(l=>{
+    bgX.beginPath();
+    if(l.vertical){bgX.moveTo(l.x,0);bgX.lineTo(l.x,H());}
+    else{bgX.moveTo(0,l.y);bgX.lineTo(W(),l.y);}
+    bgX.stroke();
+  });
+  bgX.restore();
+}
+
+function resize(){
+  [bgC,netC,glitchC,grainC].forEach(c=>{c.width=W();c.height=H();});
+  buildGrid();
+}
+window.addEventListener('resize',resize);
+resize();
+
+/* ── PARTICLES ──────────────────────────────────────────── */
+const PCOUNT=prefersReducedMotion?20:90;
+const particles=[];
+function mkParticle(){
+  return{
+    x:Math.random()*W(), y:Math.random()*H(),
+    vx:(Math.random()-.5)*.4, vy:(Math.random()-.5)*.35,
+    r:Math.random()*2.2+.4,
+    life:Math.random(), dlife:.0003+Math.random()*.0004,
+    col:Math.random()>.6?'rgba(255,149,0,':'rgba(212,168,67,',
+    z:Math.random()*.7+.3,
+    shard:Math.random()>.7,
+    angle:Math.random()*Math.PI*2,
+    spin:(Math.random()-.5)*.015
+  };
+}
+for(let i=0;i<PCOUNT;i++) particles.push(mkParticle());
+
+function drawParticles(globalAlpha){
+  bgX.save();
+  particles.forEach(p=>{
+    p.x+=p.vx*p.z; p.y+=p.vy*p.z; p.life+=p.dlife; p.angle+=p.spin;
+    if(p.x<-20||p.x>W()+20||p.y<-20||p.y>H()+20||p.life>1){Object.assign(p,mkParticle());p.life=0;}
+    const a=Math.sin(p.life*Math.PI)*globalAlpha*.75*p.z;
+    bgX.globalAlpha=a;
+    if(p.shard){
+      bgX.save();
+      bgX.translate(p.x,p.y);
+      bgX.rotate(p.angle);
+      bgX.fillStyle=p.col+'0.9)';
+      bgX.fillRect(-p.r*2,-p.r*.5,p.r*4,p.r);
+      bgX.restore();
+    } else {
+      bgX.beginPath();
+      bgX.arc(p.x,p.y,p.r,0,Math.PI*2);
+      bgX.fillStyle=p.col+'0.9)';
+      bgX.fill();
+      // glow
+      bgX.shadowBlur=8; bgX.shadowColor=p.col+'0.6)';
+      bgX.fill();
+      bgX.shadowBlur=0;
+    }
+  });
+  bgX.globalAlpha=1;
+  bgX.restore();
+}
+
+/* ── NETWORK GRAPH ──────────────────────────────────────── */
+const NNODES=prefersReducedMotion?12:32;
+const nodes=[];
+const edges=[];
+let edgePulses=[];
+
+function mkNode(){
+  return{
+    x:Math.random()*W(), y:Math.random()*H(),
+    vx:(Math.random()-.5)*.6, vy:(Math.random()-.5)*.5,
+    r:Math.random()*4+3,
+    col:Math.random()>.5?'#FF9500':'#FF3B30',
+    pulse:Math.random()*Math.PI*2,
+    pulseSpeed:.04+Math.random()*.03
+  };
+}
+for(let i=0;i<NNODES;i++) nodes.push(mkNode());
+
+function buildEdges(chaos){
+  edges.length=0;
+  const count=Math.floor(chaos*NNODES*1.5);
+  for(let i=0;i<count;i++){
+    const a=Math.floor(Math.random()*nodes.length);
+    const b=Math.floor(Math.random()*nodes.length);
+    if(a!==b) edges.push({a,b,alpha:Math.random()*.6+.2,pulse:Math.random()*Math.PI*2,pSpeed:.05+Math.random()*.04});
+  }
+}
+buildEdges(0);
+
+function drawNetwork(alpha, chaos){
+  netX.clearRect(0,0,W(),H());
+  if(alpha<.01) return;
+  netX.save();
+  netX.globalAlpha=alpha;
+
+  // edges
+  edges.forEach(e=>{
+    e.pulse+=e.pSpeed;
+    const na=nodes[e.a], nb=nodes[e.b];
+    const grad=netX.createLinearGradient(na.x,na.y,nb.x,nb.y);
+    grad.addColorStop(0,'rgba(255,59,48,0)');
+    grad.addColorStop(.5,`rgba(255,149,0,${e.alpha*(0.5+0.5*Math.sin(e.pulse))})`);
+    grad.addColorStop(1,'rgba(255,59,48,0)');
+    netX.beginPath();
+    netX.moveTo(na.x,na.y);
+    netX.lineTo(nb.x,nb.y);
+    netX.strokeStyle=grad;
+    netX.lineWidth=.8;
+    netX.stroke();
+  });
+
+  // nodes
+  nodes.forEach(n=>{
+    n.pulse+=n.pulseSpeed;
+    n.x+=n.vx*.5; n.y+=n.vy*.5;
+    if(n.x<0||n.x>W()) n.vx*=-1;
+    if(n.y<0||n.y>H()) n.vy*=-1;
+    const pulse=.7+.3*Math.sin(n.pulse);
+    netX.beginPath();
+    netX.arc(n.x,n.y,n.r*pulse,0,Math.PI*2);
+    netX.fillStyle=n.col;
+    netX.shadowBlur=14; netX.shadowColor=n.col;
+    netX.fill();
+    netX.shadowBlur=0;
+  });
+
+  netX.globalAlpha=1;
+  netX.restore();
+}
+
+/* ── GRAIN ──────────────────────────────────────────────── */
+function drawGrain(){
+  const w=grainC.width, h=grainC.height;
+  const img=grainX.createImageData(w,h);
+  const d=img.data;
+  for(let i=0;i<d.length;i+=4){
+    const v=Math.random()*255|0;
+    d[i]=d[i+1]=d[i+2]=v; d[i+3]=30+Math.random()*40|0;
+  }
+  grainX.putImageData(img,0,0);
+}
+
+/* ── GLITCH ─────────────────────────────────────────────── */
+let glitchIntensity=0, glitchActive=false;
+function fireGlitch(intensity,dur){
+  glitchIntensity=intensity;
+  glitchActive=true;
+  setTimeout(()=>{glitchActive=false;glitchIntensity=0;glitchC.style.opacity='0';},dur||180);
+}
+function drawGlitch(){
+  if(!glitchActive){return;}
+  const w=W(),h=H();
+  glitchX.clearRect(0,0,w,h);
+  glitchC.style.opacity='1';
+  const slices=Math.floor(glitchIntensity*8)+3;
+  for(let i=0;i<slices;i++){
+    const sy=Math.random()*h, sh=Math.random()*40+8;
+    const sx=(Math.random()-.5)*glitchIntensity*30;
+    const sc=Math.random()>.5?'rgba(255,59,48,':'rgba(0,207,255,';
+    const sa=Math.random()*.35;
+    glitchX.fillStyle=sc+sa+')';
+    glitchX.fillRect(0,sy,w,sh);
+    if(Math.random()>.5){
+      glitchX.save();
+      glitchX.translate(sx,0);
+      glitchX.globalAlpha=.18+Math.random()*.2;
+      glitchX.drawImage(bgC,0,sy,w,sh,0,sy+Math.random()*6-3,w,sh);
+      glitchX.restore();
+    }
+  }
+  // RGB split line
+  glitchX.save();
+  glitchX.globalCompositeOperation='screen';
+  glitchX.globalAlpha=.12;
+  glitchX.fillStyle='rgba(255,0,80,1)';
+  glitchX.fillRect(Math.random()*4-2,0,w,h);
+  glitchX.restore();
+}
+
+/* ── CAMERA SHAKE ───────────────────────────────────────── */
+let shakeX=0,shakeY=0,shakeMag=0;
+function fireShake(mag,dur){
+  shakeMag=mag;
+  setTimeout(()=>{shakeMag=0;shakeX=0;shakeY=0;},dur||300);
+}
+function updateShake(){
+  if(shakeMag>0){
+    shakeX=(Math.random()-.5)*shakeMag*2;
+    shakeY=(Math.random()-.5)*shakeMag*2;
+    document.getElementById('panels-layer').style.transform=`translate(${shakeX}px,${shakeY}px)`;
+  } else {
+    document.getElementById('panels-layer').style.transform='';
+  }
+}
+
+/* ── PARALLAX ───────────────────────────────────────────── */
+function applyParallax(){
+  const dx=(mx-W()/2)/W(), dy=(my-H()/2)/H();
+  document.getElementById('panels-layer').style.transform=`translate(${dx*-18}px,${dy*-12}px)`;
+}
+
+/* ── PANELS ─────────────────────────────────────────────── */
+const PANEL_DEFS=[
+  {
+    id:'p-crm', w:240, h:160, x:.12, y:.18, rx:-8, ry:6, rz:1,
+    title:'CRM — HubSpot', dots:['#FF5F57','#FEBC2E','#28C840'],
+    body:`<div class="err-line"><span class="err-icon"></span>Contact sync failed · 2,341 errors</div>
+<div class="grey-line">Pipeline: Stage unknown (847 deals)</div>
+<div class="warn-line"><span class="warn-icon"></span>Webhook timeout · retry limit hit</div>
+<div class="grey-line">Last sync: 3h 47m ago</div>
+<div class="err-line"><span class="err-icon"></span>API rate limit exceeded</div>`
+  },
+  {
+    id:'p-sheet', w:260, h:148, x:.78, y:.14, rx:6, ry:-9, rz:-1.5,
+    title:'Sheets — Revenue Q3', dots:['#FF5F57','#FEBC2E','#28C840'],
+    body:`<div class="warn-line"><span class="warn-icon"></span>#REF! error in 34 cells</div>
+<div class="grey-line">Formula broken: =IMPORTDATA(url)</div>
+<div class="err-line"><span class="err-icon"></span>Sheet out of sync · manual edits</div>
+<div class="grey-line">Version conflict with 4 editors</div>
+<div class="warn-line"><span class="warn-icon"></span>Data source disconnected</div>`
+  },
+  {
+    id:'p-slack', w:210, h:170, x:.55, y:.08, rx:-5, ry:4, rz:2,
+    title:'Slack — #ops-alerts', dots:['#FF5F57','#FEBC2E','#28C840'],
+    body:`<div class="warn-line">@team: Pipeline is broken again</div>
+<div class="err-line"><span class="err-icon"></span>Alert: 14 failed deployments</div>
+<div class="grey-line">@riya: Which spreadsheet is source of truth?</div>
+<div class="warn-line"><span class="warn-icon"></span>Bot offline · 47 missed alerts</div>
+<div class="grey-line">@lead: anyone know the AWS key?</div>`
+  },
+  {
+    id:'p-api', w:270, h:145, x:.08, y:.62, rx:7, ry:-5, rz:-2,
+    title:'API Logs — Gateway', dots:['#FF5F57','#FEBC2E','#28C840'],
+    body:`<div class="err-line"><span class="err-icon"></span>POST /sync · 502 Bad Gateway</div>
+<div class="grey-line">p50: 1847ms · p99: 8320ms · errors: 34%</div>
+<div class="err-line"><span class="err-icon"></span>Token expired · auth loop detected</div>
+<div class="warn-line"><span class="warn-icon"></span>Rate limit: 12 services throttled</div>
+<div class="err-line"><span class="err-icon"></span>CORS blocked · 3 integrations down</div>`
+  },
+  {
+    id:'p-trello', w:230, h:155, x:.70, y:.70, rx:-9, ry:7, rz:1.5,
+    title:'Trello — Sprint Board', dots:['#FF5F57','#FEBC2E','#28C840'],
+    body:`<div class="warn-line"><span class="warn-icon"></span>47 cards in backlog · 0 done</div>
+<div class="err-line"><span class="err-icon"></span>Automation: rule limit exceeded</div>
+<div class="grey-line">Due dates: 12 overdue (this week)</div>
+<div class="warn-line"><span class="warn-icon"></span>Power-Up error: data sync off</div>
+<div class="grey-line">Last updated: someone's laptop</div>`
+  },
+  {
+    id:'p-db', w:252, h:138, x:.33, y:.76, rx:5, ry:8, rz:-1,
+    title:'Database — PostgreSQL', dots:['#FF5F57','#FEBC2E','#28C840'],
+    body:`<div class="err-line"><span class="err-icon"></span>FATAL: connection pool exhausted</div>
+<div class="err-line"><span class="err-icon"></span>Deadlock detected · query killed</div>
+<div class="grey-line">Disk usage: 97.3% · WARN threshold</div>
+<div class="warn-line"><span class="warn-icon"></span>Replica lag: 14.2s behind primary</div>`
+  },
+  {
+    id:'p-aws', w:244, h:142, x:.25, y:.10, rx:-6, ry:-8, rz:2.5,
+    title:'AWS CloudWatch', dots:['#FF5F57','#FEBC2E','#28C840'],
+    body:`<div class="err-line"><span class="err-icon"></span>Lambda: 3,847 errors in 5 min</div>
+<div class="err-line"><span class="err-icon"></span>EC2 i-0a9f: CPU 99.8% · unresponsive</div>
+<div class="warn-line"><span class="warn-icon"></span>S3 costs: +340% vs. last month</div>
+<div class="grey-line">Billing anomaly: $12,400 overage</div>
+<div class="err-line"><span class="err-icon"></span>IAM: 2 leaked keys detected</div>`
+  },
+];
+
+const floatLabels=[
+  'DATA SILO','MANUAL PROCESS','WEBHOOK FAILED',
+  'SYNC ERROR','NO AUDIT TRAIL','VERSION CONFLICT','SYSTEM TIMEOUT'
+];
+
+function buildPanels(){
+  const layer=document.getElementById('panels-layer');
+  PANEL_DEFS.forEach(def=>{
+    const el=document.createElement('div');
+    el.className='panel';
+    el.id=def.id;
+    el.style.width=def.w+'px';
+    el.style.left=(def.x*100)+'%';
+    el.style.top=(def.y*100)+'%';
+    el.innerHTML=`
+      <div class="panel-bar">
+        ${def.dots.map(c=>`<div class="panel-dot" style="background:${c}"></div>`).join('')}
+        <span class="panel-title">${def.title}</span>
+      </div>
+      <div class="panel-body">${def.body}</div>`;
+    layer.appendChild(el);
+    def.el=el;
+    def.baseRx=def.rx; def.baseRy=def.ry; def.baseRz=def.rz;
+  });
+
+  // Float labels
+  floatLabels.forEach((txt,i)=>{
+    const el=document.createElement('div');
+    el.className='float-label';
+    el.textContent=txt;
+    el.style.left=(10+Math.random()*75)+'%';
+    el.style.top=(15+Math.random()*65)+'%';
+    el.dataset.idx=i;
+    layer.appendChild(el);
+  });
+}
+buildPanels();
+
+/* ── TIMELINE ENGINE ─────────────────────────────────────── */
+function lerp(a,b,t){return a+(b-a)*t}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function ease(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2}
+function easeOut(t){return 1-Math.pow(1-t,3)}
+function easeIn(t){return t*t*t}
+function progress(t,start,end){return clamp((t-start)/(end-start),0,1)}
+
+/* ── BLOOM ───────────────────────────────────────────────── */
+const bloom=document.getElementById('bloom');
+function setBloom(v){bloom.style.opacity=v;}
+
+/* ── MAIN LOOP ───────────────────────────────────────────── */
+let grainTick=0;
+let networkChaos=0;
+let lastEdgeRebuild=0;
+
+function frame(ts){
+  if(!t0) t0=ts;
+  now=(ts-t0)/1000; // seconds
+  raf=requestAnimationFrame(frame);
+
+  // Background
+  bgX.fillStyle='rgba(8,7,6,0.78)';
+  bgX.fillRect(0,0,W(),H());
+
+  // ── PHASE 0–1: INIT ─────────
+  const p01=progress(now,0,1.2);
+  const gridAlpha=easeOut(p01);
+  drawGrid(gridAlpha);
+
+  // ── PARTICLES ────────────────
+  let pAlpha=0;
+  if(now>0.2) pAlpha=easeOut(progress(now,0.2,1.5));
+  if(now>7) pAlpha=lerp(pAlpha,0.3,progress(now,7,9));
+  drawParticles(pAlpha);
+
+  // ── NETWORK ──────────────────
+  let netAlpha=0;
+  if(now>2.5) netAlpha=easeOut(progress(now,2.5,4));
+  if(now>5.5) netAlpha=lerp(netAlpha,0.15,progress(now,5.5,7));
+  networkChaos=clamp(progress(now,2.5,4.5),0,1);
+  if(now-lastEdgeRebuild>1.2&&now>2.5&&now<6){
+    buildEdges(networkChaos);
+    lastEdgeRebuild=now;
+  }
+  drawNetwork(netAlpha,networkChaos);
+
+  // ── PANELS ───────────────────
+  PANEL_DEFS.forEach((def,i)=>{
+    if(!def.el) return;
+    const delay=1.0+i*0.22;
+    const pIn=easeOut(progress(now,delay,delay+0.55));
+    let pOut=1;
+    if(now>5.8) pOut=1-easeIn(progress(now,5.8,7));
+
+    const finalAlpha=pIn*pOut;
+    def.el.style.opacity=finalAlpha;
+
+    // 3D rotation
+    const dx=(mx-W()/2)/W()*12;
+    const dy=(my-H()/2)/H()*8;
+    const rx=def.baseRx+dy;
+    const ry=def.baseRy+dx;
+    const tz=-60+pIn*60;
+    const scale=0.88+pIn*0.12;
+    def.el.style.transform=`translate3d(0,${(1-pIn)*35}px,${tz}px) rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${def.baseRz}deg) scale(${scale})`;
+
+    // chaos glow
+    if(now>3.5&&now<6){
+      const glowStrength=0.3+0.7*Math.sin(now*3+i);
+      def.el.style.boxShadow=`0 0 ${20+glowStrength*30}px rgba(255,59,48,${0.06+glowStrength*0.09})`;
+    }
+  });
+
+  // ── FLOAT LABELS ─────────────
+  document.querySelectorAll('.float-label').forEach((el,i)=>{
+    const delay=3.0+i*0.35;
+    const p=easeOut(progress(now,delay,delay+0.4));
+    let pOut=1;
+    if(now>5.5) pOut=1-easeIn(progress(now,5.5,6.8));
+    const yOff=Math.sin(now*.8+i)*8;
+    el.style.opacity=p*pOut;
+    el.style.transform=`translateY(${yOff-(1-p)*20}px)`;
+  });
+
+  // ── GLITCH BURSTS ─────────────
+  if(!prefersReducedMotion){
+    if(Math.abs(now-3.6)<.05||Math.abs(now-4.2)<.05||Math.abs(now-4.8)<.04){
+      fireGlitch(0.6+Math.random()*.4,120);
+      fireShake(4+Math.random()*3,220);
+    }
+    if(Math.abs(now-5.3)<.04){
+      fireGlitch(1,200);
+      fireShake(7,300);
+    }
+    drawGlitch();
+  }
+
+  // ── TEXT PHASE (5–7s) ─────────
+  const heroEl=document.getElementById('hero-text');
+  if(now>5.0){
+    const heroIn=easeOut(progress(now,5.0,5.5));
+    heroEl.style.opacity=heroIn;
+    heroEl.style.transform=`translateY(${(1-heroIn)*24}px)`;
+    // small tag
+    const smallEl=heroEl.querySelector('.ht-small');
+    if(smallEl) smallEl.style.opacity=heroIn;
+
+    const lines=[
+      {id:'tl1',t:5.2},{id:'tl2',t:5.45},
+      {id:'tl3',t:5.85},{id:'tl4',t:6.1},
+      {id:'tl5',t:6.55},{id:'tl6',t:6.8}
+    ];
+    lines.forEach(l=>{
+      const el=document.getElementById(l.id);
+      if(!el) return;
+      const p=easeOut(progress(now,l.t,l.t+0.45));
+      el.style.opacity=p;
+      el.style.transform=`translateY(${(1-p)*28}px)`;
+    });
+  }
+
+  // ── BLOOM ─────────────────────
+  if(now>5){
+    const bv=0.3+0.7*easeOut(progress(now,5,7));
+    setBloom(bv);
+  }
+
+  // ── BOTTOM PANEL (7–9s) ───────
+  if(now>7){
+    const bInfo=document.getElementById('bottom-info');
+    const bIn=easeOut(progress(now,7,7.6));
+    bInfo.style.opacity=bIn;
+    bInfo.style.transform=`translateY(${(1-bIn)*14}px)`;
+
+    const items=[
+      {id:'ci1',t:7.1},{id:'ci2',t:7.35},{id:'ci3',t:7.6},{id:'ci-warn',t:7.9}
+    ];
+    items.forEach(it=>{
+      const el=document.getElementById(it.id);
+      if(!el) return;
+      const p=easeOut(progress(now,it.t,it.t+0.4));
+      el.style.opacity=p;
+      el.style.transform=`translateX(${(1-p)*-12}px)`;
+    });
+  }
+
+  // ── BRAND (8.5–10s) ───────────
+  if(now>8.5){
+    const br=document.getElementById('brand');
+    const bv=easeOut(progress(now,8.5,9.5));
+    br.style.opacity=bv;
+  }
+
+  // ── FINAL FREEZE (9–10s) ──────
+  if(now>9){
+    const freeze=progress(now,9,10.5);
+    const scl=1+freeze*0.018;
+    document.getElementById('text-layer').style.transform=`scale(${scl})`;
+    // depth blur on panels
+    PANEL_DEFS.forEach(def=>{
+      if(def.el) def.el.style.filter=`blur(${freeze*3}px)`;
+    });
+    // bloom pulse
+    const glow=0.6+0.4*Math.sin(now*2);
+    setBloom(glow);
+  }
+
+  // ── PARALLAX ─────────────────
+  if(shakeMag===0) applyParallax();
+  updateShake();
+
+  // ── GRAIN ────────────────────
+  grainTick++;
+  if(grainTick%2===0) drawGrain();
+}
+
+/* ── IDLE AUTO-PARALLAX ──────────────────────────────────── */
+let idleT=0;
+setInterval(()=>{
+  idleT+=0.02;
+  if(Math.abs(mx-W()/2)<40&&Math.abs(my-H()/2)<40){
+    mx=W()/2+Math.sin(idleT)*120;
+    my=H()/2+Math.cos(idleT*.7)*80;
+  }
+},50);
+
+/* ── KICK OFF ────────────────────────────────────────────── */
+requestAnimationFrame(frame);
+
+})();
+</script>
+</body>
+</html>
