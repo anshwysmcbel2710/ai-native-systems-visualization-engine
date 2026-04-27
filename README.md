@@ -18,8 +18,6 @@
   </p>
 </div>
 
-<hr />
-
 ---
 
 # 🧾 Executive Summary
@@ -28,35 +26,36 @@ A high-performance, AI-native cinematic frontend system designed to visualize op
 
 ---
 
-# 📑 Table of Contents
-
-1. Project Overview
-2. Objectives & Goals
-3. Acceptance Criteria
-4. Prerequisites
-5. Installation & Setup
-6. API Documentation
-7. UI / Frontend Architecture
-8. Status Codes
-9. Features
-10. Tech Stack & Architecture
-11. Workflow & Implementation
-12. Testing & Validation
-13. Validation Summary
-14. Verification Tools
-15. Troubleshooting
-16. Security
-17. Deployment
-18. Quick Start
-19. Usage Notes
-20. Performance
-21. Enhancements
-22. Maintenance
-23. Milestones
-24. High-Level Architecture
-25. Folder Structure
-26. Demo Execution
-27. Summary & Compliance
+<h1>📑 Table of Contents</h1>
+<ol>
+  <li>🧩 Project Overview</li>
+  <li>🎯 Objectives & Goals</li>
+  <li>✅ Acceptance Criteria</li>
+  <li>💻 Prerequisites</li>
+  <li>⚙️ Installation & Setup</li>
+  <li>🔗 API Documentation</li>
+  <li>🖥️ UI / Frontend</li>
+  <li>🔢 Status Codes</li>
+  <li>🚀 Features</li>
+  <li>🧱 Tech Stack & Architecture</li>
+  <li>🛠️ Workflow & Implementation</li>
+  <li>🧪 Testing & Validation</li>
+  <li>🔍 Validation Summary</li>
+  <li>🧰 Verification Testing Tools</li>
+  <li>🧯 Troubleshooting & Debugging</li>
+  <li>🔒 Security & Secrets</li>
+  <li>☁️ Deployment</li>
+  <li>⚡ Quick-Start Cheat Sheet</li>
+  <li>🧾 Usage Notes</li>
+  <li>🧠 Performance & Optimization</li>
+  <li>🌟 Enhancements & Features</li>
+  <li>🧩 Maintenance & Future Work</li>
+  <li>🏆 Key Achievements</li>
+  <li>🧮 High-Level Architecture</li>
+  <li>🗂️ Project Structure</li>
+  <li>🧭 How to Demonstrate Live</li>
+  <li>💡 Summary, Closure & Compliance</li>
+</ol>
 
 ---
 
